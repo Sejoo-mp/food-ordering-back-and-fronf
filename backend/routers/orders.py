@@ -157,30 +157,6 @@ async def all_orders(status: Optional[str] = None, user=Depends(decode_token)):
         })
 
     return result
-    """
-    دریافت تمام سفارشات (فقط ادمین)
-    - نیاز به احراز هویت دارد
-    - فقط ادمین می‌تواند ببیند
-    """
-    # بررسی نقش ادمین
-    if user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden - Admin only")
-    
-    orders = await Order.find_all().to_list()
-    
-    # تبدیل به فرمت مناسب برای نمایش
-    result = []
-    for order in orders:
-        result.append({
-            "id": str(order.id),
-            "user_id": order.user_id,
-            "items": order.items,
-            "total_price": order.total_price,
-            "status": order.status,
-            "created_at": order.created_at
-        })
-    
-    return result
 
 
 @router.patch("/{id}/status")
