@@ -11,11 +11,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- محل نمایش نوتیفیکیشن‌های toast -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
     <!-- هدر -->
     <header class="header">
         <div class="container">
             <h1><span class="header-emoji">🍽️</span> سامانه سفارش غذا</h1>
             <nav>
+                <span id="userGreeting" class="user-greeting" style="display:none;"></span>
                 <button id="loginBtn" class="btn btn-primary">ورود</button>
                 <button id="registerBtn" class="btn btn-secondary">ثبت‌نام</button>
                 <button id="logoutBtn" class="btn btn-danger" style="display:none;">خروج</button>
@@ -30,22 +34,60 @@
             <div id="loginForm" class="form-container">
                 <h2>ورود</h2>
                 <form id="login">
-                    <input type="email" id="loginEmail" placeholder="ایمیل" required>
-                    <input type="password" id="loginPassword" placeholder="رمز عبور" required>
-                    <button type="submit" class="btn btn-primary">ورود</button>
+                    <label class="field-label" for="loginEmail">ایمیل</label>
+                    <input type="email" id="loginEmail" placeholder="ایمیل" required autocomplete="email">
+
+                    <label class="field-label" for="loginPassword">رمز عبور</label>
+                    <div class="password-field">
+                        <input type="password" id="loginPassword" placeholder="رمز عبور" required autocomplete="current-password">
+                        <button type="button" class="toggle-password" data-target="loginPassword" aria-label="نمایش رمز عبور">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <span class="btn-label">ورود</span>
+                        <span class="btn-spinner" style="display:none;"></span>
+                    </button>
                 </form>
             </div>
             <div id="registerForm" class="form-container" style="display:none;">
                 <h2>ثبت‌نام</h2>
                 <form id="register">
-                    <input type="text" id="regName" placeholder="نام کامل" required>
-                    <input type="email" id="regEmail" placeholder="ایمیل" required>
-                    <input type="password" id="regPassword" placeholder="رمز عبور" required>
-                    <select id="regRole">
-                        <option value="user">کاربر عادی</option>
-                        <option value="admin">مدیر</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary">ثبت‌نام</button>
+                    <label class="field-label" for="regName">نام کامل</label>
+                    <input type="text" id="regName" placeholder="نام کامل" required autocomplete="name">
+
+                    <label class="field-label" for="regEmail">ایمیل</label>
+                    <input type="email" id="regEmail" placeholder="ایمیل" required autocomplete="email">
+
+                    <label class="field-label" for="regPassword">رمز عبور</label>
+                    <div class="password-field">
+                        <input type="password" id="regPassword" placeholder="رمز عبور" required autocomplete="new-password">
+                        <button type="button" class="toggle-password" data-target="regPassword" aria-label="نمایش رمز عبور">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <ul id="passwordRules" class="password-rules">
+                        <li data-rule="length"><i class="fa-solid fa-circle-xmark"></i> حداقل ۸ کاراکتر</li>
+                        <li data-rule="upper"><i class="fa-solid fa-circle-xmark"></i> یک حرف بزرگ انگلیسی (A-Z)</li>
+                        <li data-rule="lower"><i class="fa-solid fa-circle-xmark"></i> یک حرف کوچک انگلیسی (a-z)</li>
+                        <li data-rule="digit"><i class="fa-solid fa-circle-xmark"></i> یک عدد (0-9)</li>
+                        <li data-rule="special"><i class="fa-solid fa-circle-xmark"></i> یک کاراکتر خاص (!@#$...)</li>
+                    </ul>
+
+                    <label class="field-label" for="regPasswordConfirm">تکرار رمز عبور</label>
+                    <div class="password-field">
+                        <input type="password" id="regPasswordConfirm" placeholder="تکرار رمز عبور" required autocomplete="new-password">
+                        <button type="button" class="toggle-password" data-target="regPasswordConfirm" aria-label="نمایش رمز عبور">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <p id="passwordMatchMsg" class="field-hint"></p>
+
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <span class="btn-label">ثبت‌نام</span>
+                        <span class="btn-spinner" style="display:none;"></span>
+                    </button>
                 </form>
             </div>
         </section>
@@ -54,41 +96,71 @@
         <section id="menuSection">
             <h2>📋 منوی غذاها</h2>
             <div class="menu-actions">
-                <button id="showAddMenu" class="btn btn-success" style="display:none;">➕ افزودن غذای جدید</button>
+                <button id="showAddMenu" class="btn btn-success" style="display:none;">
+                    <i class="fa-solid fa-plus"></i> افزودن غذای جدید
+                </button>
+
+                <!-- فرم افزودن/ویرایش غذا (فقط ادمین) - دقیقا زیر دکمه بالا باز می‌شود -->
+                <div id="addMenuForm" class="slide-panel form-container">
+                    <h2>افزودن غذای جدید</h2>
+                    <form id="addMenu">
+                        <label class="field-label" for="menuName">نام غذا</label>
+                        <input type="text" id="menuName" placeholder="نام غذا" required>
+
+                        <label class="field-label" for="menuDesc">توضیحات</label>
+                        <textarea id="menuDesc" placeholder="توضیحات" required></textarea>
+
+                        <label class="field-label" for="menuPrice">قیمت (تومان)</label>
+                        <input type="number" id="menuPrice" placeholder="قیمت" min="0" step="0.01" required>
+
+                        <label class="field-label" for="menuCategory">دسته‌بندی</label>
+                        <input type="text" id="menuCategory" placeholder="مثلاً: پیتزا، نوشیدنی، دسر" required list="categoryOptions">
+                        <datalist id="categoryOptions"></datalist>
+
+                        <label class="field-label" for="menuImage">تصویر غذا</label>
+                        <input type="file" id="menuImage" accept="image/png,image/jpeg,image/webp">
+                        <div id="imagePreviewWrap" class="image-preview-wrap" style="display:none;">
+                            <img id="imagePreview" alt="پیش‌نمایش تصویر غذا">
+                            <button type="button" id="removeImagePreview" class="btn btn-danger btn-sm">حذف تصویر</button>
+                        </div>
+
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="menuAvailable" checked>
+                            موجود است
+                        </label>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">
+                                <span class="btn-label">ذخیره</span>
+                                <span class="btn-spinner" style="display:none;"></span>
+                            </button>
+                            <button type="button" id="cancelAddMenu" class="btn btn-secondary">لغو</button>
+                        </div>
+                        <input type="hidden" id="editingItemId" value="">
+                        <input type="hidden" id="editingItemImage" value="">
+                    </form>
+                </div>
             </div>
+
+            <!-- فیلتر دسته‌بندی -->
+            <div id="categoryFilters" class="category-filters" style="display:none;"></div>
+
             <div id="menuItems" class="menu-grid">
                 <p style="text-align:center;padding:20px;color:#666;">در حال بارگذاری منو...</p>
             </div>
-        </section>
-
-        <!-- فرم افزودن غذا (فقط ادمین) -->
-        <section id="addMenuForm" class="form-container" style="display:none;">
-            <h2>افزودن غذای جدید</h2>
-            <form id="addMenu">
-                <input type="text" id="menuName" placeholder="نام غذا" required>
-                <textarea id="menuDesc" placeholder="توضیحات" required></textarea>
-                <input type="number" id="menuPrice" placeholder="قیمت" step="0.01" required>
-                <input type="text" id="menuCategory" placeholder="دسته‌بندی" required>
-                <input type="file" id="menuImage" accept="image/*">
-                <label>
-                    <input type="checkbox" id="menuAvailable" checked>
-                    موجود است
-                </label>
-                <button type="submit" class="btn btn-success">ذخیره</button>
-                <input type="hidden" id="editingItemId" value="">
-                <input type="hidden" id="editingItemImage" value="">
-                <button type="button" id="cancelAddMenu" class="btn btn-secondary">لغو</button>
-            </form>
         </section>
 
         <!-- سبد خرید -->
         <section id="cartSection">
             <h2>🛒 سبد خرید</h2>
             <div id="cartItems">
-                <p>سبد خرید خالی است</p>
+                <p class="empty-state">سبد خرید خالی است</p>
             </div>
             <div id="cartTotal">جمع کل: <span id="totalPrice">۰</span> تومان</div>
-            <button id="checkoutBtn" class="btn btn-primary">ثبت سفارش</button>
+            <button id="checkoutBtn" class="btn btn-primary btn-block">
+                <span class="btn-label">ثبت سفارش</span>
+                <span class="btn-spinner" style="display:none;"></span>
+            </button>
         </section>
 
         <!-- سفارشات (فقط وقتی وارد شده باشی نشون داده می‌شه) -->
@@ -101,7 +173,7 @@
                 <button class="filter-btn" data-status="cancelled">لغو شده</button>
             </div>
             <div id="ordersList">
-                <p style="color:#666;">هیچ سفارشی ثبت نشده است</p>
+                <p class="empty-state">هیچ سفارشی ثبت نشده است</p>
             </div>
         </section>
     </main>
