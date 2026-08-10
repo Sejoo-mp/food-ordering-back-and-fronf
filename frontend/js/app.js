@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://food-ordering-cn8t.onrender.com';
 let token = localStorage.getItem('token');
 let cart = [];
 
